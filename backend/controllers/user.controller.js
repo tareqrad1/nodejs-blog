@@ -66,9 +66,11 @@ export const deleteMyAccount = async (req, res) => {
             await cloudinary.uploader.destroy(publicId);
         }
         await User.findByIdAndDelete(req.user._id);
-        res.clearCookie('token', { path: '/' });
+        res.clearCookie('accessToken', { path: '/' });
+        // @Note: delete all posts the account posted it 
         res.status(200).json({ message: 'Account deleted successfully' });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error', error});
     }
 };
+// *get profile user*
