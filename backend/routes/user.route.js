@@ -6,7 +6,7 @@ import { adminRole } from '../middleware/role.js';
 const router = express.Router();
 
 router.post('/update', protectedRoute, updateMyProfile)
-router.get('/users', protectedRoute, adminRole, getAllUsers);
-router.delete('/delete-account', protectedRoute, deleteMyAccount);
+router.get('/', protectedRoute, adminRole, getAllUsers);
+router.delete('/delete', protectedRoute, deleteMyAccount);
 
 export default router;
