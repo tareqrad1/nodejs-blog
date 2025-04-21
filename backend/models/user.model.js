@@ -42,8 +42,13 @@ const userSchema = new mongoose.Schema({
     resetTokenExpires: {
         type: Date,
         default: Date.now,
+    },
+    accountVerification: {
+        type: Boolean,
+        default: false,
     }
 }, { timestamps: true });
 
 export const User = mongoose.model('User', userSchema);
+
 export default User;
