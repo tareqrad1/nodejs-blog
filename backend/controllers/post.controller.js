@@ -1,5 +1,6 @@
 import cloudinary from "../config/connectCloudinary.js";
 import Post from "../models/post.model.js";
+import Notification from "../models/notification.model.js";
 
 export const createPost = async (req, res) => {
     const { title, paragraph, tags } = req.body;
@@ -20,6 +21,11 @@ export const createPost = async (req, res) => {
             tags: tags ? tags.split(",") : [],
         });
         await post.save();
+        const notification = new Notification({
+            to: req.user._id,
+            message: `You have created a new post`,
+        });
+        await notification.save();
         res.status(201).json({ message: "Post created successfully", post });
     } catch (error) {
         res.status(500).json({ error: "Internal server error", error });
@@ -137,8 +143,8 @@ export const commentOnPost = async (req, res) => {
     }
 }
 export const deleteMyComment = async (req, res) => {
-    const { id } = req.params;
-    const { commentId } = req.body;
+    const { id } = req.params; //id of the post
+    const { commentId } = req.body; //id of the comment to be deleted
     try {
         const post = await Post.findById(id);
         if(!post) {
@@ -180,6 +186,32 @@ export const repliesOnComment = async (req, res) => {
         });
         await post.save();
         res.status(200).json({ message: "Comment added successfully", post });
+    } catch (error) {
+        res.status(500).json({ error: "Internal server error", error });
+    }
+};
+export const deleteMyReplayComment = async (req, res) => {
+    const { id } = req.params; //id of the post
+    const { commentId, replayId } = req.body; //id of the comment to be deleted
+    try {
+        const post = await Post.findById(id);
+        if(!post) {
+            return res.status(404).json({ error: "Post not found" });
+        }
+        const commentIndex = post.comments.findIndex(comment => comment._id.toString() === commentId.toString());
+        if(commentIndex === -1) {
+            return res.status(404).json({ error: "Comment not found" });
+        }
+        const replayIndex = post.comments[commentIndex].replies.findIndex(replay => replay._id.toString() === replayId.toString());
+        if(replayIndex === -1) {
+            return res.status(404).json({ error: "Replay not found" });
+        }
+        if(post.comments[commentIndex].replies[replayIndex].userId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: "You do not have permission to perform this action" });
+        }
+        post.comments[commentIndex].replies.splice(replayIndex, 1);
+        await post.save();
+        res.status(200).json({ message: "Replay deleted successfully", post });
     } catch (error) {
         res.status(500).json({ error: "Internal server error", error });
     }

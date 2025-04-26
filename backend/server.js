@@ -11,10 +11,10 @@ import authRoute from './routes/auth.route.js';
 import userRoute from './routes/user.route.js';
 import postsRoute from './routes/post.route.js';
 import paymentRoute from './routes/payment.route.js';
+import notificationRoute from './routes/notification.route.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 
 
 // Middleware
@@ -32,6 +32,7 @@ app.use('/api/auth', authRoute);
 app.use('/api/user', userRoute);
 app.use('/api/post', postsRoute);
 app.use('/api/payment', paymentRoute);
+app.use('/api/notification', notificationRoute)
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

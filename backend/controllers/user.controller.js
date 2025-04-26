@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import cloudinary from '../config/connectCloudinary.js';
+import Post from '../models/post.model.js';
 
 export const updateMyProfile = async (req, res) => {
     const { name, email, currentPassword, newPassword } = req.body;
@@ -65,12 +66,21 @@ export const deleteMyAccount = async (req, res) => {
             const publicId = user.profilePhoto.split('/').pop().split('.')[0];
             await cloudinary.uploader.destroy(publicId);
         }
+        await Post.deleteMany({ userId: req.user._id });
         await User.findByIdAndDelete(req.user._id);
-        res.clearCookie('accessToken', { path: '/' });
-        // @Note: delete all posts the account posted it 
+        res.clearCookie('accessToken', { path: '/' });        
         res.status(200).json({ message: 'Account deleted successfully' });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error', error});
     }
 };
-// *get profile user*
+export const getProfileUsers = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const user = await User.findById(id);
+        if(!user) return res.status(404).json({ error: 'User not found' });
+        res.status(200).json({ user });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error', error });
+    }
+}
