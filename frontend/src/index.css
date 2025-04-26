@@ -118,3 +118,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .primary-text {
+    @apply text-[#183B56];
+  }
+  .secondary-text {
+    @apply text-[#1565D8];
+  }
+}
