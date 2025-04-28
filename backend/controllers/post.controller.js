@@ -142,6 +142,12 @@ export const commentOnPost = async (req, res) => {
             createdAt: Date.now(),
         });
         await post.save();
+        const notification = new Notification({
+            to: post.userId,
+            from: req.user._id,
+            message: `${req.user.name} commented on your post`,
+        });
+        await notification.save();
         res.status(200).json({ message: "Comment added successfully", post });
     } catch (error) {
         res.status(500).json({ error: "Internal server error", error });
@@ -190,6 +196,12 @@ export const repliesOnComment = async (req, res) => {
             createdAt: Date.now(),
         });
         await post.save();
+        const notification = new Notification({
+            to: post.comments[commentIndex].userId,
+            from: req.user._id,
+            message: `${req.user.name} replied to your comment`,
+        });
+        await notification.save();
         res.status(200).json({ message: "Comment added successfully", post });
     } catch (error) {
         res.status(500).json({ error: "Internal server error", error });
@@ -250,6 +262,12 @@ export const likeUnlikePosts = async (req, res) => {
                 }
             }
             await post.save();
+            const notification = new Notification({
+                to: post.userId,
+                from: req.user._id,
+                message: `${req.user.name} liked your post`,
+            });
+            await notification.save();
             const updatedPost = await Post.findById(id);
             res.status(200).json({ message: "Post liked successfully", post: updatedPost });
         }
