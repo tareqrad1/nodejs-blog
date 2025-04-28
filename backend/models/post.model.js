@@ -55,6 +55,11 @@ const postSchema = new mongoose.Schema({
                 default: Date.now
             }
         }]
+    }],
+    likes: [{ //here we are get user id who liked the post
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     }]
 }, { timestamps: true });
 

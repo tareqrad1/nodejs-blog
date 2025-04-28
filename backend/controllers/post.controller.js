@@ -1,6 +1,7 @@
 import cloudinary from "../config/connectCloudinary.js";
 import Post from "../models/post.model.js";
 import Notification from "../models/notification.model.js";
+import User from "../models/user.model.js";
 
 export const createPost = async (req, res) => {
     const { title, paragraph, tags } = req.body;
@@ -56,6 +57,24 @@ export const getAllPosts = async (req, res) => {
         res.status(500).json({ error: "Internal server error", error });
     }
 }
+export const getOnePost = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const post = await Post.findById(id).populate({
+            path: 'userId',
+            select: 'name email profilePhoto'
+        });
+        if (!post) {
+            return res.status(404).json({ error: "Post not found" });
+        }
+        const views = post.views + 1;
+        await Post.findByIdAndUpdate(id, { views}, { new: true });
+        res.status(200).json({ post });
+    } catch (error) {
+        res.status(500).json({ error: "Internal server error", error });
+    }
+
+}
 export const deletePost = async (req, res) => {
     const { id } = req.params;
     try {
@@ -103,20 +122,6 @@ export const updatePost = async (req, res) => {
         await post.save();
         res.status(200).json({ message: "Post updated successfully", post });
     } catch (error) {
-        res.status(500).json({ error: "Internal server error", error });
-    }
-}
-export const updatedViews = async (req, res) => {
-    const { id } = req.params;
-    try {
-        const post = await Post.findById(id);
-        if(!post) {
-            return res.status(404).json({ error: "Post not found" });
-        }
-        post.views += 1;
-        await post.save();
-        res.status(200).json({ message: "Views updated successfully" });
-    }catch (error) {
         res.status(500).json({ error: "Internal server error", error });
     }
 }
@@ -212,6 +217,42 @@ export const deleteMyReplayComment = async (req, res) => {
         post.comments[commentIndex].replies.splice(replayIndex, 1);
         await post.save();
         res.status(200).json({ message: "Replay deleted successfully", post });
+    } catch (error) {
+        res.status(500).json({ error: "Internal server error", error });
+    }
+}
+export const likeUnlikePosts = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const post = await Post.findById(id);
+        if(!post) {
+            return res.status(404).json({ error: "Post not found" });
+        };
+        const userLiked = post.likes.includes(req.user._id);
+        if(userLiked) {
+            await Post.findByIdAndUpdate(id, {
+                $pull: {
+                    likes: req.user._id,
+                }
+            });
+            await User.findByIdAndUpdate(req.user._id, {
+                $pull: {
+                    likedPost: id
+                }
+            });
+            const updatedPost = await Post.findById(id);
+            res.status(200).json({ message: "Post unliked successfully", post: updatedPost });
+        }else {
+            post.likes.push(req.user._id);
+            await User.findByIdAndUpdate(id), {
+                $push: {
+                    likedPost: id
+                }
+            }
+            await post.save();
+            const updatedPost = await Post.findById(id);
+            res.status(200).json({ message: "Post liked successfully", post: updatedPost });
+        }
     } catch (error) {
         res.status(500).json({ error: "Internal server error", error });
     }

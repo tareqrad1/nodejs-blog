@@ -4,8 +4,8 @@ import cloudinary from '../config/connectCloudinary.js';
 import Post from '../models/post.model.js';
 
 export const updateMyProfile = async (req, res) => {
-    const { name, email, currentPassword, newPassword } = req.body;
-    let { profilePhoto } = req.body;
+    const { name, email, currentPassword, newPassword, bio, links } = req.body;
+    let { profilePhoto, backgroundPhoto } = req.body;
     
     try {
         let user = await User.findById(req.user._id).lean();
@@ -35,9 +35,20 @@ export const updateMyProfile = async (req, res) => {
             const uploadResponse = await cloudinary.uploader.upload(profilePhoto);
             profilePhoto = uploadResponse.secure_url;
         }
+        if(backgroundPhoto) {
+            if(user.backgroundPhoto) {
+                const publicId = user.profilePhoto.split('/').pop().split('.')[0];
+                await cloudinary.uploader.destroy(publicId);
+            }
+            const uploadResponse = await cloudinary.uploader.upload(backgroundPhoto);
+            backgroundPhoto = uploadResponse.secure_url;
+        }
         user.name = name || user.name;
         user.email = email || user.email;
         user.profilePhoto = profilePhoto || user.profilePhoto;
+        user.backgroundPhoto = backgroundPhoto || user.backgroundPhoto;
+        user.bio = bio || user.bio;
+        user.links = links || user.links;
         user.verificationCode = undefined;
         user.verificationCodeExpires = undefined;
         await user.save();

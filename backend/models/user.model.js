@@ -18,11 +18,28 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "",
     },
+    backgroundPhoto: {
+        type: String,
+        default: "",
+    },
+    bio: {
+        type: String,
+        default: "",
+    },
+    links: {
+        type: String,
+        default: "",
+    },
     role: {
         type: String,
         enum: ["user", "admin"],
         default: "user",
     },
+    likedPost: [{ //here we are get post id i'm liked it 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Post',
+        default: [],
+    }],
     isActive: {
         type: Boolean,
         default: false
